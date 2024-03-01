@@ -1,95 +1,84 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { FormEvent, useState } from "react";
+import styles from "./stylesheets/page.module.css";
 
 export default function Home() {
+  // state
+  const [todos, changeTodos] = useState([]);
+  const [inputVal, changeInputVal] = useState("");
+  const [editState, changeEditState] = useState({ bool: false, idx: 0 });
+  const [editInputVal, changeEditInputVal] = useState("");
+
+  //functions
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    changeTodos((oldTodos) => {
+      let newTodos = JSON.parse(JSON.stringify(oldTodos));
+      newTodos.push(inputVal);
+      return newTodos;
+    });
+    changeInputVal("");
+  };
+
+  const handleDelete = (index: number) => {
+    changeTodos((oldTodos) => {
+      let newTodos = JSON.parse(JSON.stringify(oldTodos));
+      newTodos.splice(index, 1);
+
+      return newTodos;
+    });
+  };
+
+  const handleEdit = (idx: number) => {
+    changeEditState({ bool: true, idx: idx });
+    changeEditInputVal(todos[idx]);
+  };
+
+  const handleEditCancel = (idx: number) => {
+    changeEditState({ bool: false, idx: 0 });
+  };
+  const handleEditFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    changeTodos((oldTodos) => {
+      let newTodos = JSON.parse(JSON.stringify(oldTodos));
+      newTodos[editState.idx] = editInputVal;
+      return newTodos;
+    });
+    changeEditState({ bool: false, idx: 0 });
+  };
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <form onSubmit={handleFormSubmit}>
+        <input
+          value={inputVal}
+          onChange={(e) => changeInputVal(e.target.value)}
         />
-      </div>
+        <input type="submit" value="submit" />
+      </form>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      {todos.map((todo, idx) => {
+        return (
+          <div key={idx}>
+            {editState.bool && editState.idx === idx ? (
+              <form onSubmit={handleEditFormSubmit}>
+                <input
+                  value={editInputVal}
+                  onChange={(e) => changeEditInputVal(e.target.value)}
+                />
+                <input type="submit" value="submit" />
+                <button onClick={() => handleEditCancel(idx)}>cancel</button>
+              </form>
+            ) : (
+              <>
+                {todo}
+                <button onClick={() => handleEdit(idx)}>edit</button>
+                <button onClick={() => handleDelete(idx)}>delete</button>
+              </>
+            )}
+          </div>
+        );
+      })}
     </main>
   );
 }
